@@ -1,0 +1,493 @@
+You are an expert underwriting analyst for a life insurance company. Your task is to analyze the provided life insurance application text and extract all relevant information into a single, valid JSON object. Do not provide any other text, explanations, or conversational filler. The output must be ONLY the JSON object.
+
+The application text is:
+---
+{{ $json.extractedText }}
+---
+
+
+
+Ensure the final JSON is correct and contains no extra content.
+
+Only output JSON in the following format  
+
+{
+  "applicant": {
+    "name": "ADD",
+    "dob": "ADD",
+    "state": "ADD"
+  },
+  "underwritingSections": [
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    },
+    {
+      "section": "ADD",
+      "findings": [
+        {"text": "ADD"},
+        {"text": "ADD"},
+        {"text": "ADD"}
+      ]
+    }
+  ],
+  "summary": {
+    "disclosureSummary": [
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"},
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"},
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"},
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"},
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"},
+          {"text": "ADD"},
+          {"text": "ADD"},
+          {"text": "ADD"},
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"}
+        ]
+      },
+      {
+        "heading": "ADD",
+        "bullets": [
+          {"text": "ADD"}
+        ]
+      }
+    ],
+    "redFlags": [
+      {"text": "ADD"},
+      {"text": "ADD"},
+      {"text": "ADD"},
+      {"text": "ADD"},
+      {"text": "ADD"}
+    ]
+  }
+}
+
+If you are unsure of either of these, just output N/A in the field.  
+
+Sample values for above JSON is as follows   
+
+
+{
+  "applicant": {
+    "name": "Mr John Smith",
+    "dob": "21-08-1982",
+    "state": "NSW"
+  },
+  "underwritingSections": [
+    {
+      "section": "Applicant details",
+      "findings": [
+        {"text": "Name: Mr John Smith"},
+        {"text": "DOB: 21-08-1982"},
+        {"text": "Gender: Male"},
+        {"text": "Address: "},
+        {"text": "State: NSW"},
+        {"text": "Mobile: "},
+        {"text": "Email: "},
+        {"text": "Height/Weight: 174 cm / 80 kg"},
+        {"text": "BMI: 26.40"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Applied for cover",
+      "findings": [
+        {"text": "Life: $1,000,000.00"},
+        {"text": "TPD (Any Occupation): $500,000.00"},
+        {"text": "Trauma (Linked): $200,000.00"},
+        {"text": "Income Protection: Monthly benefit $5,000.00, Benefit period 2 years, Waiting period 90 days"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Existing cover",
+      "findings": [
+        {"text": "Life with other insurer: $300,000 (intend to replace $300,000)"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Modified Terms",
+      "findings": [
+        {"text": "None disclosed (no previous declines/loadings/exclusions reported)"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Claims history",
+      "findings": [
+        {"text": "None disclosed (no past or intended claims reported)"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Residency details",
+      "findings": [
+        {"text": "Australian permanent resident visa"},
+        {"text": "Currently living in Australia: Yes"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Occupation details",
+      "findings": [
+        {"text": "Main occupation: category as quoted White Collar (Class WC)"},
+        {"text": "Employment status: Employed"},
+        {"text": "Typical weekly hours: 20 to 45 hours"},
+        {"text": "Performs administration/computer duties ≥90%; no manual duties"},
+        {"text": "Second job: Bartender; hours per week: 10"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Income details",
+      "findings": [
+        {"text": "Main job income: 85000"},
+        {"text": "Second job income: 15000"},
+        {"text": "Total regular annual income: $100,000"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Travel",
+      "findings": [
+        {"text": "Plans overseas travel within next 12 months for recreation"},
+        {"text": "Planned leave/travel timing disclosed: 17/06/2026"},
+        {"text": "Travel details: Provide details of the countries (including all cities and regions) you will be travelling to, and the amount of time you willspend in each.Portugal 4 months"},
+        {"text": "Expected duration > 3 months"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Recreation",
+      "findings": [
+        {"text": "Professional/semi-professional sport: Bicycle racing"},
+        {"text": "Scuba diving (formally trained; does not dive unaccompanied; dives >40m)"},
+        {"text": "Recreational flying (pilot of single engine aircraft)"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Alcohol",
+      "findings": [
+        {"text": "Consumes 12 drinks/week · Received counselling to stop drinking "},
+        {"text": "No hospitalisation or residential treatment"}
+      ]
+    },
+    {
+      "section": "Drug Use",
+      "findings": [
+        {"text": "No illegal drug use in past 10 years"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Smoking",
+      "findings": [
+        {"text": "Smoker: Yes "},
+        {"text": "Smokes less than 10 cigarettes per day"}
+      ]
+    },
+    {
+      "section": "BMI",
+      "findings": [
+        {"text": "BMI 26.40 (overweight range)"},
+        {"text": "Height: 174 cm"},
+        {"text": "Weight: 80 kg"}
+      ]
+    },
+    {
+      "section": "Medical History",
+      "findings": [
+        {"text": "History of melanoma (Stage 2); removed 2019; left arm; no recurrence; no treatment in last 12 months; treating GP provided."},
+        {"text": "Other skin cancer treated; frozen/burnt off; resolved; pre-cancer/CIS removed; no chemo/radiotherapy; no further treatment required."},
+        {"text": "Heart murmur diagnosed in 2000, resolved by 2008"},
+        {"text": "Migraines (not increasing; no abnormalities on investigation; up to 7 days impacted in last 12 months)."},
+        {"text": "Hyperlipidaemia; on prescribed statin; last cholesterol reading 4.2 within past 12 months."},
+        {"text": "GORD/reflux symptoms; advised to have endoscopy; not yet booked; no complications reported."},
+        {"text": "Appendicitis with appendectomy; >3 months ago; fully recovered, no complications."},
+        {"text": "Whiplash single episode; >3 years ago; full recovery; 2–4 weeks time off; neck/upper back affected."},
+        {"text": "Left ankle fracture/dislocation; >5 years ago; fully recovered; no surgery; no restrictions."},
+        {"text": "History of abnormal PSA for ~3 years; last result 4.0 ng/mL (reported 18/02/2024) attributed to prostate infection; now returned to normal; no further investigations required."},
+        {"text": "Recent dental issues consultation in last 12 months."},
+        {"text": "Genetic testing for family planning/IVF; not for medical condition."},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "Family History",
+      "findings": [
+        {"text": "Breast cancer in first-degree relative; relation and age at diagnosis not stated."},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    },
+    {
+      "section": "GP Details",
+      "findings": [
+        {"text": "Treating doctor details (melanoma): GP doctors test health, 20/25 Smith road, Sydney, NSW, 2000"},
+        {"text": "Regular clinic & doctor: , the suburb this is located, and the name of your usual doctor."},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    }
+  ],
+  "summary": {
+    "disclosureSummary": [
+      {
+        "heading": "Cancer & Dermatology",
+        "bullets": [
+          {"text": "Melanoma (Stage 2) removed 2019; left arm; no recurrence; treatment complete."},
+          {"text": "Other skin cancers and pre-cancer/CIS treated with freezing/burning; currently clear."}
+        ]
+      },
+      {
+        "heading": "Cardiovascular",
+        "bullets": [
+          {"text": "Childhood heart murmur resolved; last echo 2008 normal."},
+          {"text": "Hyperlipidaemia on prescribed medication; last cholesterol 4.2."}
+        ]
+      },
+      {
+        "heading": "Neurology",
+        "bullets": [
+          {"text": "Migraines; not increasing; ≤7 days affected in past 12 months; no abnormal tests."}
+        ]
+      },
+      {
+        "heading": "Gastrointestinal",
+        "bullets": [
+          {"text": "GORD/reflux; advised endoscopy; not yet booked; no complications reported."},
+          {"text": "Appendectomy; fully recovered."}
+        ]
+      },
+      {
+        "heading": "Musculoskeletal",
+        "bullets": [
+          {"text": "Whiplash single episode >3 years ago; full recovery."},
+          {"text": "Left ankle fracture/dislocation >5 years ago; full recovery; no surgery."}
+        ]
+      },
+      {
+        "heading": "Urology",
+        "bullets": [
+          {"text": "Abnormal PSA history; transient; attributed to prostatitis; currently normalized (reported 18/02/2024)."}
+        ]
+      },
+      {
+        "heading": "Lifestyle & Risk",
+        "bullets": [
+          {"text": "Current smoker (<10/day)."},
+          {"text": "Alcohol ~in a typical week? standard drinks/week; prior counselling to reduce/stop."},
+          {"text": "Recreational pilot (single engine)."},
+          {"text": "Scuba diving >40m (qualified, accompanied)."},
+          {"text": "Semi-professional bicycle racing."}
+        ]
+      },
+      {
+        "heading": "Family History",
+        "bullets": [
+          {"text": "First-degree relative with breast cancer; relation and age at diagnosis not provided."}
+        ]
+      },
+      {
+        "heading": "Catch-all",
+        "bullets": [
+          {"text": "No additional disclosures beyond those listed were identified in the provided application."}
+        ]
+      }
+    ],
+    "redFlags": [
+      {"text": "Travel timing inconsistent: extended leave noted as starting 17/04/2026 (Europe, 4 months) vs travel question leaving 17/06/2026 for Portugal 4 months."},
+      {"text": "Answered 'No' to participating in cycling under recreation list, yet disclosed professional/semi-professional bicycle racing later."},
+      {"text": "GP details appear inconsistent (different addresses listed for treating GP vs regular clinic)."},
+      {"text": "PSA test date recorded as 18/0/2024 (invalid month). Clarify correct date."},
+      {"text": "Scuba diving deeper than 40m: missing frequency, locations, and use of mixed gas/decompression practices."}
+    ]
+  }
+}
