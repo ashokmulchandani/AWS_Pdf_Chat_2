@@ -12,6 +12,10 @@ def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = event['Records'][0]['s3']['object']['key']
     
+    # Debug logging
+    print(f"Processing file: s3://{bucket}/{key}")
+    print(f"Account ID: {account_id}, Region: {region}")
+    
     # Start Textract job
     response = textract.start_document_text_detection(
         DocumentLocation={
