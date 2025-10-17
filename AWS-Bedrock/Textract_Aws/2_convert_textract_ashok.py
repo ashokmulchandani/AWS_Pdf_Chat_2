@@ -161,17 +161,11 @@ def structure_with_bedrock(raw_text, json_template):
 def move_pdf_to_processed(job_id, bucket_name):
     print(f"[PDF MOVE] Starting PDF move process for job: {job_id}")
     s3 = boto3.client('s3')
-    textract = boto3.client('textract')
     
     try:
-        print(f"[PDF MOVE] Getting Textract job details...")
-        # Get job details to find original PDF location
-        job_response = textract.get_document_text_detection(JobId=job_id)
-        
-        original_key = None
         print(f"[PDF MOVE] Searching for PDF files in input/ folder...")
         
-        # List files in input folder and find by timestamp
+        # Skip Textract job details call - just find most recent PDF
         response = s3.list_objects_v2(Bucket=bucket_name, Prefix='input/')
         if 'Contents' in response:
             print(f"[PDF MOVE] Found {len(response['Contents'])} files in input/ folder")
@@ -186,11 +180,9 @@ def move_pdf_to_processed(job_id, bucket_name):
                 print(f"[PDF MOVE] Selected most recent PDF: {original_key}")
             else:
                 print(f"[PDF MOVE] No PDF files found in input/ folder")
+                return
         else:
             print(f"[PDF MOVE] No files found in input/ folder")
-        
-        if not original_key:
-            print("[PDF MOVE] ERROR: Could not determine original PDF location")
             return
             
         # Define new key in processed_pdfs folder
