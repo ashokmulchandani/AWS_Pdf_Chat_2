@@ -1,5 +1,6 @@
 import boto3
 import json
+from urllib.parse import unquote_plus
 
 def lambda_handler(event, context):
     textract = boto3.client('textract')
@@ -10,7 +11,7 @@ def lambda_handler(event, context):
     
     # Get S3 event details
     bucket = event['Records'][0]['s3']['bucket']['name']
-    key = event['Records'][0]['s3']['object']['key']
+    key = unquote_plus(event['Records'][0]['s3']['object']['key'])
     
     # Debug logging
     print(f"Processing file: s3://{bucket}/{key}")
