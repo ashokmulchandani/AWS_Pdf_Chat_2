@@ -354,6 +354,7 @@ def generate_docx(data, filepath):
         print(f"[DOCX] Unexpected error: {str(e)}")
         print(f"[DOCX] Falling back to text format")
         # Fallback: create text file matching sample format exactly
+        print(f"[DOCX] Creating fallback text file: {filepath}")
         with open(filepath, 'w', encoding='utf-8') as f:
             # Centered title
             f.write("                         Underwriting Summary\n")
