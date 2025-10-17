@@ -30,8 +30,11 @@ def lambda_handler(event, context):
     
     # Generate DOCX file
     docx_key_name = f"{job_id}_Underwriting_Summary.docx"
-    generate_docx(structured_data, f"/tmp/{docx_key_name}")
-    upload_to_s3(f"/tmp/{docx_key_name}", BUCKET_NAME, f"{PREFIX}/{docx_key_name}")
+    docx_created = generate_docx(structured_data, f"/tmp/{docx_key_name}")
+    if docx_created:
+        upload_to_s3(f"/tmp/{docx_key_name}", BUCKET_NAME, f"{PREFIX}/{docx_key_name}")
+    else:
+        print(f"[DOCX] File creation failed, skipping upload")
     
     # Move processed PDF to processed_pdfs folder
     move_pdf_to_processed(job_id, BUCKET_NAME)
@@ -342,6 +345,7 @@ def generate_docx(data, filepath):
         
         doc.save(filepath)
         print(f"[DOCX] Successfully generated sample-format DOCX: {filepath}")
+        return True
         
     except ImportError as e:
         print(f"[DOCX] ImportError: {str(e)}")
@@ -403,13 +407,19 @@ def generate_docx(data, filepath):
                             f.write(f"• {flag_text}\n")
         
         print(f"[DOCX] Generated sample-format text report: {filepath}")
+        return True
     
     except Exception as e:
         print(f"[DOCX] Error generating DOCX: {str(e)}")
-        # Create minimal fallback file
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(f"Underwriting Summary\n\nProcessed Data:\n{json.dumps(data, indent=2)}")
-        print(f"[DOCX] Created fallback report: {filepath}")
+        try:
+            # Create minimal fallback file
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(f"Underwriting Summary\n\nProcessed Data:\n{json.dumps(data, indent=2)}")
+            print(f"[DOCX] Created fallback report: {filepath}")
+            return True
+        except Exception as fallback_error:
+            print(f"[DOCX] Fallback creation failed: {str(fallback_error)}")
+            return False
 
 
 def move_pdf_to_processed(job_id, bucket_name):
