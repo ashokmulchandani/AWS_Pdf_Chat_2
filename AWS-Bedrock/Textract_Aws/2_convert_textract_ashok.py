@@ -28,8 +28,10 @@ def lambda_handler(event, context):
         json.dump(structured_data, f, indent=2)
     upload_to_s3(f"/tmp/{json_key_name}", BUCKET_NAME, f"{PREFIX}/{json_key_name}")
     
-    # Skip DOCX generation for now due to layer issues
-    print("DOCX generation skipped - layer issue")
+    # Generate DOCX file
+    docx_key_name = f"{job_id}_Underwriting_Summary.docx"
+    generate_docx(structured_data, f"/tmp/{docx_key_name}")
+    upload_to_s3(f"/tmp/{docx_key_name}", BUCKET_NAME, f"{PREFIX}/{docx_key_name}")
     
     # Move processed PDF to processed_pdfs folder
     move_pdf_to_processed(job_id, BUCKET_NAME)
@@ -103,6 +105,7 @@ def get_embedded_template():
                 return f.read()
         except:
             # Final fallback - return the complete template structure
+            # Use the complete Nobleoak template from the file
             return '''You are an expert underwriting analyst for a life insurance company. Your task is to analyze the provided life insurance application text and extract all relevant information into a single, valid JSON object. Do not provide any other text, explanations, or conversational filler. The output must be ONLY the JSON object.
 
 The application text is:
@@ -112,7 +115,38 @@ The application text is:
 
 Ensure the final JSON is correct and contains no extra content.
 
-Only output JSON with ALL 17 sections: Applicant details, Applied for cover, Existing cover, Modified Terms, Claims history, Residency details, Occupation details, Income details, Travel, Recreation, Alcohol, Drug Use, Smoking, BMI, Medical History, Family History, GP Details.
+Only output JSON in the following format:
+
+{
+  "applicant": {
+    "name": "ADD",
+    "dob": "ADD",
+    "state": "ADD"
+  },
+  "underwritingSections": [
+    {
+      "section": "Applicant details",
+      "findings": [
+        {"text": "Name: [extracted name]"},
+        {"text": "DOB: [extracted dob]"},
+        {"text": "Additional relevant disclosures: none beyond those listed."}
+      ]
+    }
+  ],
+  "summary": {
+    "disclosureSummary": [
+      {
+        "heading": "[Category]",
+        "bullets": [
+          {"text": "[Summary point]"}
+        ]
+      }
+    ],
+    "redFlags": [
+      {"text": "[Any inconsistencies or concerns]"}
+    ]
+  }
+}
 
 If you are unsure of any field, output "N/A".'''
 
@@ -153,9 +187,229 @@ def structure_with_bedrock(raw_text, json_template):
         }
 
 
-# DOCX generation temporarily disabled due to layer issues
-# def generate_docx(data, filepath):
-#     pass
+def generate_docx(data, filepath):
+    """Generate DOCX using sample template for exact formatting"""
+    try:
+        print(f"[DOCX] Attempting to import python-docx...")
+        from docx import Document
+        from docx.shared import Inches, Pt
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        print(f"[DOCX] python-docx imported successfully")
+        
+        # Load Exercise 1 sample as template
+        try:
+            s3 = boto3.client('s3')
+            # Try multiple possible template names
+            template_keys = [
+                'templates/Exercise 1- Sample output - Underwriting_Summary.docx',
+                'templates/Exercise_1_Sample_Underwriting_Summary.docx',
+                'templates/sample_template.docx'
+            ]
+            
+            template_response = None
+            for key in template_keys:
+                try:
+                    template_response = s3.get_object(
+                        Bucket=os.environ.get('BUCKET_NAME', 'python-docx-bucket1'),
+                        Key=key
+                    )
+                    print(f"[DOCX] Found template at: {key}")
+                    break
+                except:
+                    continue
+            
+            if not template_response:
+                raise Exception("No template found")
+            with open('/tmp/template.docx', 'wb') as f:
+                f.write(template_response['Body'].read())
+            doc = Document('/tmp/template.docx')
+            
+            # Clear all content but preserve styles
+            for paragraph in doc.paragraphs[:]:
+                p = paragraph._element
+                p.getparent().remove(p)
+            
+            print(f"[DOCX] Using Exercise 1 sample template")
+                
+        except:
+            doc = Document()
+            print(f"[DOCX] Template not found - creating new document")
+        
+        # Set document margins
+        sections = doc.sections
+        for section in sections:
+            section.top_margin = Inches(1)
+            section.bottom_margin = Inches(1)
+            section.left_margin = Inches(1)
+            section.right_margin = Inches(1)
+        
+        # Title - Match Exercise 1 exactly
+        title_para = doc.add_paragraph()
+        title_run = title_para.add_run('Underwriting Summary')
+        title_run.bold = True
+        title_run.font.size = Pt(16)  # Larger for exact match
+        title_run.font.name = 'Calibri'
+        title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        title_para.space_after = Pt(12)
+        
+        # Add line break
+        doc.add_paragraph()
+        
+        # Applicant Information Section
+        applicant_heading = doc.add_paragraph()
+        applicant_run = applicant_heading.add_run('Applicant Information')
+        applicant_run.bold = True
+        applicant_run.underline = True
+        
+        applicant = data.get('applicant', {})
+        
+        # Applicant details with bold labels
+        name_para = doc.add_paragraph()
+        name_para.add_run('Name: ').bold = True
+        name_para.add_run(applicant.get('name', 'N/A'))
+        
+        dob_para = doc.add_paragraph()
+        dob_para.add_run('DOB: ').bold = True
+        dob_para.add_run(applicant.get('dob', 'N/A'))
+        
+        state_para = doc.add_paragraph()
+        state_para.add_run('State: ').bold = True
+        state_para.add_run(applicant.get('state', 'N/A'))
+        
+        # Add spacing
+        doc.add_paragraph()
+        
+        # Process each underwriting section
+        for section in data.get('underwritingSections', []):
+            # Section heading - Bold and underlined
+            section_heading = doc.add_paragraph()
+            section_run = section_heading.add_run(section.get('section', ''))
+            section_run.bold = True
+            section_run.underline = True
+            
+            # Section findings using proper bullet style
+            for finding in section.get('findings', []):
+                finding_text = finding.get('text', '')
+                if finding_text and finding_text.strip() and finding_text != 'N/A':
+                    bullet_para = doc.add_paragraph(finding_text, style='List Bullet')
+            
+            # Add spacing between sections
+            doc.add_paragraph()
+        
+        # Summary Section
+        summary = data.get('summary', {})
+        if summary and (summary.get('disclosureSummary') or summary.get('redFlags')):
+            # Summary main heading
+            summary_heading = doc.add_paragraph()
+            summary_run = summary_heading.add_run('Summary')
+            summary_run.bold = True
+            summary_run.underline = True
+            
+            # Disclosure Summary
+            if summary.get('disclosureSummary'):
+                doc.add_paragraph()
+                
+                # Disclosure Summary subheading
+                disc_heading = doc.add_paragraph()
+                disc_run = disc_heading.add_run('Disclosure Summary')
+                disc_run.bold = True
+                
+                for disclosure in summary.get('disclosureSummary', []):
+                    # Category heading
+                    if disclosure.get('heading'):
+                        cat_para = doc.add_paragraph()
+                        cat_run = cat_para.add_run(disclosure.get('heading', ''))
+                        cat_run.bold = True
+                        
+                        # Category bullets using proper style
+                        for bullet in disclosure.get('bullets', []):
+                            bullet_text = bullet.get('text', '')
+                            if bullet_text and bullet_text.strip():
+                                bullet_para = doc.add_paragraph(bullet_text, style='List Bullet')
+                        
+                        doc.add_paragraph()  # Spacing between categories
+            
+            # Red Flags Section
+            if summary.get('redFlags'):
+                red_flags_heading = doc.add_paragraph()
+                red_flags_run = red_flags_heading.add_run('Red Flags')
+                red_flags_run.bold = True
+                
+                for flag in summary.get('redFlags', []):
+                    flag_text = flag.get('text', '')
+                    if flag_text and flag_text.strip():
+                        bullet_para = doc.add_paragraph(flag_text, style='List Bullet')
+        
+        doc.save(filepath)
+        print(f"[DOCX] Successfully generated sample-format DOCX: {filepath}")
+        
+    except ImportError as e:
+        print(f"[DOCX] ImportError: {str(e)}")
+        print(f"[DOCX] python-docx not available, generating exact sample text format")
+    except Exception as e:
+        print(f"[DOCX] Unexpected error: {str(e)}")
+        print(f"[DOCX] Falling back to text format")
+        # Fallback: create text file matching sample format exactly
+        with open(filepath, 'w', encoding='utf-8') as f:
+            # Centered title
+            f.write("                         Underwriting Summary\n")
+            f.write("\n\n")
+            
+            # Applicant Information
+            f.write("Applicant Information\n")
+            f.write("_____________________\n\n")
+            applicant = data.get('applicant', {})
+            f.write(f"Name: {applicant.get('name', 'N/A')}\n")
+            f.write(f"DOB: {applicant.get('dob', 'N/A')}\n")
+            f.write(f"State: {applicant.get('state', 'N/A')}\n\n\n")
+            
+            # Underwriting Sections
+            for section in data.get('underwritingSections', []):
+                f.write(f"{section.get('section', '')}\n")
+                f.write("_" * len(section.get('section', '')) + "\n\n")
+                
+                for finding in section.get('findings', []):
+                    finding_text = finding.get('text', '')
+                    if finding_text and finding_text != 'N/A':
+                        f.write(f"• {finding_text}\n")
+                f.write("\n\n")
+            
+            # Summary
+            summary = data.get('summary', {})
+            if summary and (summary.get('disclosureSummary') or summary.get('redFlags')):
+                f.write("Summary\n")
+                f.write("_______\n\n")
+                
+                # Disclosure Summary
+                if summary.get('disclosureSummary'):
+                    f.write("Disclosure Summary\n\n")
+                    
+                    for disclosure in summary.get('disclosureSummary', []):
+                        if disclosure.get('heading'):
+                            f.write(f"{disclosure.get('heading', '')}\n")
+                            
+                            for bullet in disclosure.get('bullets', []):
+                                bullet_text = bullet.get('text', '')
+                                if bullet_text:
+                                    f.write(f"• {bullet_text}\n")
+                            f.write("\n")
+                
+                # Red Flags
+                if summary.get('redFlags'):
+                    f.write("Red Flags\n")
+                    for flag in summary.get('redFlags', []):
+                        flag_text = flag.get('text', '')
+                        if flag_text:
+                            f.write(f"• {flag_text}\n")
+        
+        print(f"[DOCX] Generated sample-format text report: {filepath}")
+    
+    except Exception as e:
+        print(f"[DOCX] Error generating DOCX: {str(e)}")
+        # Create minimal fallback file
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"Underwriting Summary\n\nProcessed Data:\n{json.dumps(data, indent=2)}")
+        print(f"[DOCX] Created fallback report: {filepath}")
 
 
 def move_pdf_to_processed(job_id, bucket_name):
