@@ -10,8 +10,6 @@ Contributor: Ashok Mulchandani
 import os
 import json
 import boto3
-from docx import Document
-from docx.shared import Inches
 
 
 def lambda_handler(event, context):
@@ -30,10 +28,8 @@ def lambda_handler(event, context):
         json.dump(structured_data, f, indent=2)
     upload_to_s3(f"/tmp/{json_key_name}", BUCKET_NAME, f"{PREFIX}/{json_key_name}")
     
-    # Generate DOCX file
-    docx_key_name = f"{job_id}_Underwriting_Summary.docx"
-    generate_docx(structured_data, f"/tmp/{docx_key_name}")
-    upload_to_s3(f"/tmp/{docx_key_name}", BUCKET_NAME, f"{PREFIX}/{docx_key_name}")
+    # Skip DOCX generation for now due to layer issues
+    print("DOCX generation skipped - layer issue")
     
     # Move processed PDF to processed_pdfs folder
     move_pdf_to_processed(job_id, BUCKET_NAME)
@@ -157,78 +153,71 @@ def structure_with_bedrock(raw_text, json_template):
         }
 
 
-def generate_docx(data, filepath):
-    doc = Document()
-    
-    # Title
-    title = doc.add_heading('Underwriting Summary', 0)
-    
-    # Applicant Info
-    doc.add_heading('Applicant Information', level=1)
-    applicant = data.get('applicant', {})
-    doc.add_paragraph(f"Name: {applicant.get('name', 'N/A')}")
-    doc.add_paragraph(f"DOB: {applicant.get('dob', 'N/A')}")
-    doc.add_paragraph(f"State: {applicant.get('state', 'N/A')}")
-    
-    # Underwriting Sections
-    doc.add_heading('Underwriting Analysis', level=1)
-    for section in data.get('underwritingSections', []):
-        doc.add_heading(section.get('section', ''), level=2)
-        for finding in section.get('findings', []):
-            doc.add_paragraph(finding.get('text', ''), style='List Bullet')
-    
-    # Summary
-    summary = data.get('summary', {})
-    doc.add_heading('Summary', level=1)
-    
-    # Disclosure Summary
-    doc.add_heading('Disclosure Summary', level=2)
-    for disclosure in summary.get('disclosureSummary', []):
-        doc.add_heading(disclosure.get('heading', ''), level=3)
-        for bullet in disclosure.get('bullets', []):
-            doc.add_paragraph(bullet.get('text', ''), style='List Bullet')
-    
-    # Red Flags
-    if summary.get('redFlags'):
-        doc.add_heading('Red Flags', level=2)
-        for flag in summary.get('redFlags', []):
-            doc.add_paragraph(flag.get('text', ''), style='List Bullet')
-    
-    doc.save(filepath)
+# DOCX generation temporarily disabled due to layer issues
+# def generate_docx(data, filepath):
+#     pass
 
 
 def move_pdf_to_processed(job_id, bucket_name):
+    print(f"[PDF MOVE] Starting PDF move process for job: {job_id}")
     s3 = boto3.client('s3')
+    textract = boto3.client('textract')
     
     try:
-        # Get the original PDF file path from Textract job
-        textract = boto3.client('textract')
+        print(f"[PDF MOVE] Getting Textract job details...")
+        # Get job details to find original PDF location
         job_response = textract.get_document_text_detection(JobId=job_id)
         
-        # Extract original S3 key from job details
-        document_location = job_response.get('DocumentMetadata', {}).get('Pages', [{}])[0]
-        if 'DocumentLocation' in job_response:
-            original_key = job_response['DocumentLocation']['S3Object']['Name']
-        else:
-            # Fallback: assume PDF is in input folder
-            original_key = f"input/{job_id}.pdf"
+        original_key = None
+        print(f"[PDF MOVE] Searching for PDF files in input/ folder...")
         
+        # List files in input folder and find by timestamp
+        response = s3.list_objects_v2(Bucket=bucket_name, Prefix='input/')
+        if 'Contents' in response:
+            print(f"[PDF MOVE] Found {len(response['Contents'])} files in input/ folder")
+            # Get PDF files only
+            pdf_files = [obj for obj in response['Contents'] if obj['Key'].endswith('.pdf')]
+            print(f"[PDF MOVE] Found {len(pdf_files)} PDF files")
+            
+            if pdf_files:
+                # Sort by last modified and get the most recent
+                pdf_files.sort(key=lambda x: x['LastModified'], reverse=True)
+                original_key = pdf_files[0]['Key']
+                print(f"[PDF MOVE] Selected most recent PDF: {original_key}")
+            else:
+                print(f"[PDF MOVE] No PDF files found in input/ folder")
+        else:
+            print(f"[PDF MOVE] No files found in input/ folder")
+        
+        if not original_key:
+            print("[PDF MOVE] ERROR: Could not determine original PDF location")
+            return
+            
         # Define new key in processed_pdfs folder
         filename = original_key.split('/')[-1]  # Get just the filename
         new_key = f"processed_pdfs/{filename}"
         
+        print(f"[PDF MOVE] Starting move operation...")
+        print(f"[PDF MOVE] Source: s3://{bucket_name}/{original_key}")
+        print(f"[PDF MOVE] Destination: s3://{bucket_name}/{new_key}")
+        
         # Copy file to new location
+        print(f"[PDF MOVE] Step 1: Copying file to processed_pdfs/ folder...")
         s3.copy_object(
             Bucket=bucket_name,
             CopySource={'Bucket': bucket_name, 'Key': original_key},
             Key=new_key
         )
+        print(f"[PDF MOVE] Step 1: Copy completed successfully")
         
         # Delete original file
+        print(f"[PDF MOVE] Step 2: Deleting original file from input/ folder...")
         s3.delete_object(Bucket=bucket_name, Key=original_key)
+        print(f"[PDF MOVE] Step 2: Delete completed successfully")
         
-        print(f"Moved PDF from {original_key} to {new_key}")
+        print(f"[PDF MOVE] SUCCESS: PDF moved from {original_key} to {new_key}")
         
     except Exception as e:
-        print(f"Failed to move PDF: {str(e)}")
+        print(f"[PDF MOVE] ERROR: Failed to move PDF - {str(e)}")
+        print(f"[PDF MOVE] This is non-critical - processing continues")
         # Don't fail the entire process if PDF move fails
